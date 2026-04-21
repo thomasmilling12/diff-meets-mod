@@ -1,22 +1,20 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction } from "discord.js";
 import type { Command } from "../../client";
-import { logAction } from "../../utils/logger";
+import { createCase } from "../../db/cases";
+import { sendModLog } from "../../utils/modLog";
 
 const command: Command = {
   data: new SlashCommandBuilder()
     .setName("unban")
-    .setDescription("Unban a user from the server")
+    .setDescription("Unban a previously banned user")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-    .addStringOption((opt) =>
-      opt.setName("user_id").setDescription("The user ID to unban").setRequired(true)
-    )
-    .addStringOption((opt) =>
-      opt.setName("reason").setDescription("Reason for the unban").setRequired(false)
-    ),
+    .addStringOption(o => o.setName("user_id").setDescription("The user ID to unban").setRequired(true))
+    .addStringOption(o => o.setName("reason").setDescription("Reason for the unban").setRequired(false)),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const userId = interaction.options.getString("user_id", true);
+    const userId = interaction.options.getString("user_id", true).trim();
     const reason = interaction.options.getString("reason") ?? "No reason provided";
+    const guildId = interaction.guildId!;
 
     try {
       const bannedUser = await interaction.guild?.bans.fetch(userId);
@@ -27,11 +25,13 @@ const command: Command = {
 
       await interaction.guild?.members.unban(userId, `${reason} | Unbanned by ${interaction.user.tag}`);
 
-      await interaction.reply({
-        content: `Successfully unbanned **${bannedUser.user.tag}**.\nReason: ${reason}`,
+      const caseNum = createCase({
+        guildId, action: "UNBAN", userId, userTag: bannedUser.user.tag,
+        moderatorId: interaction.user.id, moderatorTag: interaction.user.tag, reason,
       });
 
-      await logAction(interaction, "UNBAN", bannedUser.user, reason);
+      await interaction.reply({ content: `Successfully unbanned **${bannedUser.user.tag}**. Case #${caseNum}\nReason: ${reason}` });
+      await sendModLog(interaction.client, guildId, "UNBAN", bannedUser.user, interaction.user.tag, reason);
     } catch {
       await interaction.reply({ content: "Failed to unban. Make sure the user ID is valid and they are banned.", ephemeral: true });
     }

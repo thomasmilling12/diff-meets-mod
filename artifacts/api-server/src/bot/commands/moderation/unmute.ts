@@ -1,22 +1,20 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction } from "discord.js";
 import type { Command } from "../../client";
-import { logAction } from "../../utils/logger";
+import { createCase } from "../../db/cases";
+import { sendModLog } from "../../utils/modLog";
 
 const command: Command = {
   data: new SlashCommandBuilder()
     .setName("unmute")
     .setDescription("Remove timeout (unmute) from a member")
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("The user to unmute").setRequired(true)
-    )
-    .addStringOption((opt) =>
-      opt.setName("reason").setDescription("Reason for the unmute").setRequired(false)
-    ),
+    .addUserOption(o => o.setName("user").setDescription("The user to unmute").setRequired(true))
+    .addStringOption(o => o.setName("reason").setDescription("Reason for the unmute").setRequired(false)),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser("user", true);
     const reason = interaction.options.getString("reason") ?? "No reason provided";
+    const guildId = interaction.guildId!;
 
     const member = interaction.guild?.members.cache.get(target.id);
     if (!member) {
@@ -32,11 +30,15 @@ const command: Command = {
     try {
       await member.timeout(null, `${reason} | Unmuted by ${interaction.user.tag}`);
 
-      await interaction.reply({
-        content: `Successfully unmuted **${target.tag}**.\nReason: ${reason}`,
+      const caseNum = createCase({
+        guildId, action: "UNMUTE", userId: target.id, userTag: target.tag,
+        moderatorId: interaction.user.id, moderatorTag: interaction.user.tag, reason,
       });
 
-      await logAction(interaction, "UNMUTE", target, reason);
+      try { await target.send(`Your timeout in **${interaction.guild?.name}** has been removed.\nReason: ${reason}`); } catch {}
+
+      await interaction.reply({ content: `Successfully unmuted **${target.tag}**. Case #${caseNum}\nReason: ${reason}` });
+      await sendModLog(interaction.client, guildId, "UNMUTE", target, interaction.user.tag, reason);
     } catch {
       await interaction.reply({ content: "Failed to unmute the user.", ephemeral: true });
     }

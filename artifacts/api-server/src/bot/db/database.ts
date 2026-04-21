@@ -105,4 +105,14 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS self_roles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id TEXT NOT NULL,
+    role_id TEXT NOT NULL,
+    description TEXT,
+    UNIQUE(guild_id, role_id)
+  )
+`);
+
 botLogger.info({ dbPath }, "Database initialized");

@@ -52,9 +52,12 @@ const command: Command = {
         {
           name: "Role Management",
           value: [
-            "`/role add` — Add a role to a member",
-            "`/role remove` — Remove a role",
-            "`/role info` — View role info",
+            "`/role add/remove/info` — Assign/remove/inspect roles on members",
+            "`/self-role add/remove/list` — Manage self-assignable roles (admin)",
+            "`/join-role` — Give yourself a self-assignable role",
+            "`/leave-role` — Remove a self-assignable role from yourself",
+            "`/role-id` — Get the ID and info of a role",
+            "`/mass-role` — Add or remove a role from all members",
           ].join("\n"),
         },
         {

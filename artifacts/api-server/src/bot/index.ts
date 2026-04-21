@@ -22,6 +22,11 @@ import slowmodeCommand from "./commands/moderation/slowmode";
 import noteCommand from "./commands/moderation/note";
 import caseCommand from "./commands/moderation/case";
 import roleCommand from "./commands/roles/role";
+import selfRoleCommand from "./commands/roles/selfrole";
+import joinRoleCommand from "./commands/roles/joinrole";
+import leaveRoleCommand from "./commands/roles/leaverole";
+import roleIdCommand from "./commands/roles/roleid";
+import massRoleCommand from "./commands/roles/massrole";
 import logCommand from "./commands/config/log";
 import automodCommand from "./commands/config/automod";
 import customcmdCommand from "./commands/config/customcmd";
@@ -38,7 +43,8 @@ import announceCommand from "./commands/utility/announce";
 const allCommands = [
   banCommand, unbanCommand, kickCommand, muteCommand, unmuteCommand,
   warnCommand, warningsCommand, purgeCommand, tempbanCommand, lockCommand,
-  slowmodeCommand, noteCommand, caseCommand, roleCommand,
+  slowmodeCommand, noteCommand, caseCommand,
+  roleCommand, selfRoleCommand, joinRoleCommand, leaveRoleCommand, roleIdCommand, massRoleCommand,
   logCommand, automodCommand, customcmdCommand, welcomeCommand,
   autoroleCommand, wordfilterCommand, buttonrolesCommand,
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand,

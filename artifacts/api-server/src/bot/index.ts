@@ -56,7 +56,7 @@ export async function startBot(): Promise<void> {
   registerInteractionCreateEvent(client);
   registerMessageCreateEvent(client);
 
-  client.once("ready", async (c) => {
+  client.once("clientReady", async (c) => {
     try {
       await deployCommands(c.user.id);
     } catch (err) {

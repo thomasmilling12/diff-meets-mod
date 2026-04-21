@@ -1,0 +1,13 @@
+uploads = []
+
+[[generated]]
+id = "Ny747Dsnyw_zsBfKjDyLV"
+uri = "file://attached_assets/diff-meets-mod-logo.png"
+type = "image"
+title = "diff meets mod bot logo"
+
+[[outputs]]
+id = "kPvP_Jl9xg7h6GWL64EF_"
+uri = "file://attached_assets/diff-meets-mod-logo.png"
+type = "image"
+title = "DIFF Meets Mod — Bot Logo"

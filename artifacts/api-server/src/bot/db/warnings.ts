@@ -24,3 +24,8 @@ export function getWarnings(guildId: string, userId: string): Warning[] {
 export function clearWarnings(guildId: string, userId: string): void {
   db.prepare("DELETE FROM warnings WHERE guild_id = ? AND user_id = ?").run(guildId, userId);
 }
+
+export function removeWarningById(guildId: string, userId: string, id: number): boolean {
+  const r = db.prepare("DELETE FROM warnings WHERE id = ? AND guild_id = ? AND user_id = ?").run(id, guildId, userId);
+  return (r.changes as number) > 0;
+}

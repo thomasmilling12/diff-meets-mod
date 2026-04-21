@@ -3,6 +3,7 @@ import type { Command } from "../../client";
 import { addWarning, getWarnings } from "../../db/warnings";
 import { createCase } from "../../db/cases";
 import { sendModLog } from "../../utils/modLog";
+import { handleEscalation } from "../../utils/escalationHandler";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -43,6 +44,16 @@ const command: Command = {
     try {
       await target.send(`You have been **warned** in **${interaction.guild?.name}**.\nReason: ${reason}\nTotal warnings: ${warnings.length}`);
     } catch {}
+
+    if (interaction.guild) {
+      const escalationMsg = await handleEscalation(
+        interaction.client, guildId, target.id, target.tag,
+        warnings.length, interaction.guild,
+      );
+      if (escalationMsg) {
+        await interaction.followUp({ content: `⚠️ **Auto-escalation triggered:** ${escalationMsg}` });
+      }
+    }
   },
 };
 

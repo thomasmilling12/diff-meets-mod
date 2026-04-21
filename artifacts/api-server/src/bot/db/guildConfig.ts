@@ -3,6 +3,10 @@ import { db } from "./database";
 export interface GuildConfig {
   guild_id: string;
   log_channel_id: string | null;
+  log_messages_channel_id: string | null;
+  log_members_channel_id: string | null;
+  log_voice_channel_id: string | null;
+  log_roles_channel_id: string | null;
   welcome_channel_id: string | null;
   welcome_message: string | null;
   auto_role_id: string | null;
@@ -30,6 +34,21 @@ export function setLogChannel(guildId: string, channelId: string | null): void {
 
 export function getLogChannel(guildId: string): string | null {
   return getConfig(guildId).log_channel_id;
+}
+
+export type ExtendedLogType = "messages" | "members" | "voice" | "roles";
+
+const LOG_COL: Record<ExtendedLogType, string> = {
+  messages: "log_messages_channel_id",
+  members: "log_members_channel_id",
+  voice: "log_voice_channel_id",
+  roles: "log_roles_channel_id",
+};
+
+export function setExtendedLogChannel(guildId: string, type: ExtendedLogType, channelId: string | null): void {
+  ensureGuild(guildId);
+  const col = LOG_COL[type];
+  db.prepare(`UPDATE guild_config SET ${col} = ? WHERE guild_id = ?`).run(channelId, guildId);
 }
 
 export function setWelcome(guildId: string, channelId: string, message: string): void {

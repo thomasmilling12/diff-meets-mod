@@ -36,13 +36,17 @@ export function getCase(guildId: string, caseNumber: number): Case | null {
   return (db.prepare("SELECT * FROM cases WHERE guild_id = ? AND case_number = ?").get(guildId, caseNumber) as unknown as Case) ?? null;
 }
 
-export function getCases(guildId: string, userId?: string): Case[] {
+export function getCases(guildId: string, userId?: string, limit = 8, offset = 0): Case[] {
   if (userId) {
-    return db.prepare("SELECT * FROM cases WHERE guild_id = ? AND user_id = ? ORDER BY case_number DESC LIMIT 10")
-      .all(guildId, userId) as unknown as Case[];
+    return db.prepare("SELECT * FROM cases WHERE guild_id = ? AND user_id = ? ORDER BY case_number DESC LIMIT ? OFFSET ?")
+      .all(guildId, userId, limit, offset) as unknown as Case[];
   }
-  return db.prepare("SELECT * FROM cases WHERE guild_id = ? ORDER BY case_number DESC LIMIT 10")
-    .all(guildId) as unknown as Case[];
+  return db.prepare("SELECT * FROM cases WHERE guild_id = ? ORDER BY case_number DESC LIMIT ? OFFSET ?")
+    .all(guildId, limit, offset) as unknown as Case[];
+}
+
+export function editCaseReason(guildId: string, caseNumber: number, reason: string): void {
+  db.prepare("UPDATE cases SET reason = ? WHERE guild_id = ? AND case_number = ?").run(reason, guildId, caseNumber);
 }
 
 export function getExpiredTempBans(): Case[] {

@@ -5,8 +5,14 @@ import { registerReadyEvent } from "./events/ready";
 import { registerInteractionCreateEvent } from "./events/interactionCreate";
 import { registerMessageCreateEvent } from "./events/messageCreate";
 import { registerGuildMemberAddEvent } from "./events/guildMemberAdd";
+import { registerGuildMemberRemoveEvent } from "./events/guildMemberRemove";
+import { registerGuildMemberUpdateEvent } from "./events/guildMemberUpdate";
+import { registerMessageUpdateEvent } from "./events/messageUpdate";
+import { registerMessageDeleteEvent } from "./events/messageDelete";
+import { registerVoiceStateUpdateEvent } from "./events/voiceStateUpdate";
 import { deployCommands } from "./deploy-commands";
 import { startTempBanChecker } from "./utils/tempbanChecker";
+import { startStatsUpdater } from "./utils/statsUpdater";
 
 import banCommand from "./commands/moderation/ban";
 import unbanCommand from "./commands/moderation/unban";
@@ -21,12 +27,16 @@ import lockCommand from "./commands/moderation/lock";
 import slowmodeCommand from "./commands/moderation/slowmode";
 import noteCommand from "./commands/moderation/note";
 import caseCommand from "./commands/moderation/case";
+import ticketCommand from "./commands/moderation/ticket";
+import closeticketCommand from "./commands/moderation/closeticket";
+
 import roleCommand from "./commands/roles/role";
 import selfRoleCommand from "./commands/roles/selfrole";
 import joinRoleCommand from "./commands/roles/joinrole";
 import leaveRoleCommand from "./commands/roles/leaverole";
 import roleIdCommand from "./commands/roles/roleid";
 import massRoleCommand from "./commands/roles/massrole";
+
 import logCommand from "./commands/config/log";
 import automodCommand from "./commands/config/automod";
 import customcmdCommand from "./commands/config/customcmd";
@@ -34,20 +44,33 @@ import welcomeCommand from "./commands/config/welcome";
 import autoroleCommand from "./commands/config/autorole";
 import wordfilterCommand from "./commands/config/wordfilter";
 import buttonrolesCommand from "./commands/config/buttonroles";
+import logconfigCommand from "./commands/config/logconfig";
+import escalationconfigCommand from "./commands/config/escalationconfig";
+import raidconfigCommand from "./commands/config/raidconfig";
+import ticketsetupCommand from "./commands/config/ticketsetup";
+import verifysetupCommand from "./commands/config/verifysetup";
+import statschannelCommand from "./commands/config/statschannel";
+
 import pingCommand from "./commands/utility/ping";
 import userinfoCommand from "./commands/utility/userinfo";
 import serverinfoCommand from "./commands/utility/serverinfo";
 import helpCommand from "./commands/utility/help";
 import announceCommand from "./commands/utility/announce";
+import pollCommand from "./commands/utility/poll";
 
 const allCommands = [
   banCommand, unbanCommand, kickCommand, muteCommand, unmuteCommand,
   warnCommand, warningsCommand, purgeCommand, tempbanCommand, lockCommand,
-  slowmodeCommand, noteCommand, caseCommand,
+  slowmodeCommand, noteCommand, caseCommand, ticketCommand, closeticketCommand,
+
   roleCommand, selfRoleCommand, joinRoleCommand, leaveRoleCommand, roleIdCommand, massRoleCommand,
+
   logCommand, automodCommand, customcmdCommand, welcomeCommand,
   autoroleCommand, wordfilterCommand, buttonrolesCommand,
-  pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand,
+  logconfigCommand, escalationconfigCommand, raidconfigCommand,
+  ticketsetupCommand, verifysetupCommand, statschannelCommand,
+
+  pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
 ];
 
 export async function startBot(): Promise<void> {
@@ -65,6 +88,11 @@ export async function startBot(): Promise<void> {
   registerInteractionCreateEvent(client);
   registerMessageCreateEvent(client);
   registerGuildMemberAddEvent(client);
+  registerGuildMemberRemoveEvent(client);
+  registerGuildMemberUpdateEvent(client);
+  registerMessageUpdateEvent(client);
+  registerMessageDeleteEvent(client);
+  registerVoiceStateUpdateEvent(client);
 
   client.once("clientReady", async (c) => {
     try {
@@ -73,6 +101,7 @@ export async function startBot(): Promise<void> {
       botLogger.error({ err }, "Failed to deploy slash commands");
     }
     startTempBanChecker(client);
+    startStatsUpdater(client);
   });
 
   try {

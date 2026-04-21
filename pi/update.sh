@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
-# DIFF Meets Mod — Update Script
-# Pulls the latest code from git, rebuilds, and restarts the bot.
-# Usage: bash pi/update.sh
-
 set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVICE_NAME="diff-meets-mod"
+SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+CURRENT_USER="$(whoami)"
+NODE_MAJOR_REQUIRED=24
 
-# ── Ensure Node/pnpm are on PATH ───────────────────────────────────────────────
-# Source nvm so node/npm are available (nvm installs to ~/.nvm)
 export NVM_DIR="$HOME/.nvm"
-# shellcheck disable=SC1091
-[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+  echo "nvm not found — installing nvm..."
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+fi
+source "$NVM_DIR/nvm.sh"
 
-# Add npm's global bin directory — this is where `npm install -g pnpm` puts pnpm
-if command -v npm &>/dev/null; then
-  NPM_GLOBAL_BIN="$(npm config get prefix)/bin"
-  export PATH="$NPM_GLOBAL_BIN:$PATH"
+CURRENT_NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)"
+if [ "$CURRENT_NODE_MAJOR" -lt "$NODE_MAJOR_REQUIRED" ]; then
+  echo "Node.js $(node --version 2>/dev/null || echo 'not found') is too old for node:sqlite. Installing Node.js ${NODE_MAJOR_REQUIRED}..."
+  nvm install "$NODE_MAJOR_REQUIRED"
 fi
 
-# Final check — if pnpm still not found, install it
+nvm use "$NODE_MAJOR_REQUIRED"
+nvm alias default "$NODE_MAJOR_REQUIRED"
+NODE_BIN="$(command -v node)"
+
+NPM_GLOBAL_BIN="$(npm config get prefix)/bin"
+export PATH="$NPM_GLOBAL_BIN:$PATH"
+
 if ! command -v pnpm &>/dev/null; then
-  echo "  pnpm not found — installing via npm..."
+  echo "pnpm not found — installing via npm..."
   npm install -g pnpm
   NPM_GLOBAL_BIN="$(npm config get prefix)/bin"
   export PATH="$NPM_GLOBAL_BIN:$PATH"
@@ -30,26 +36,49 @@ fi
 
 echo ""
 echo "=== DIFF Meets Mod — Updating ==="
-echo "  node: $(node --version 2>/dev/null || echo 'not found')"
+echo "  node: $($NODE_BIN --version)"
+echo "  node path: $NODE_BIN"
 echo "  pnpm: $(pnpm --version)"
 echo ""
 
 cd "$REPO_DIR"
 
-# ── 1. Git pull ───────────────────────────────────────────────────────────────
-echo "[1/4] Pulling latest changes from git..."
+echo "[1/5] Pulling latest changes from git..."
 git pull
 
-# ── 2. Install any new dependencies ──────────────────────────────────────────
-echo "[2/4] Updating dependencies..."
+echo "[2/5] Updating dependencies..."
 pnpm install --frozen-lockfile
 
-# ── 3. Rebuild ────────────────────────────────────────────────────────────────
-echo "[3/4] Rebuilding bot..."
+echo "[3/5] Rebuilding bot..."
 pnpm --filter @workspace/api-server run build
 
-# ── 4. Restart the service ────────────────────────────────────────────────────
-echo "[4/4] Restarting service..."
+echo "[4/5] Updating systemd service Node path..."
+sudo tee "$SERVICE_FILE" > /dev/null <<EOF
+[Unit]
+Description=DIFF Meets Mod Discord Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=${CURRENT_USER}
+WorkingDirectory=${REPO_DIR}/artifacts/api-server
+ExecStart=${NODE_BIN} --enable-source-maps ${REPO_DIR}/artifacts/api-server/dist/index.mjs
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+EnvironmentFile=${REPO_DIR}/pi/.env
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=diff-meets-mod
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable "$SERVICE_NAME" >/dev/null
+
+echo "[5/5] Restarting service..."
 sudo systemctl restart "$SERVICE_NAME"
 
 echo ""

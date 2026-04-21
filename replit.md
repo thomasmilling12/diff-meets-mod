@@ -8,6 +8,7 @@ pnpm workspace monorepo using TypeScript. DIFF Meets Mod is a full-featured Disc
 
 - **Monorepo tool**: pnpm workspaces
 - **Node.js version**: 24
+- **Pi requirement**: Node.js 24 or newer is required because the bot uses built-in `node:sqlite`
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **Discord library**: discord.js v14
@@ -137,13 +138,13 @@ pi/
 1. Connect Replit project to GitHub
 2. On Pi: `git clone <repo-url> && cd diff-meets-mod`
 3. `cp pi/.env.example pi/.env && nano pi/.env` — add `DISCORD_BOT_TOKEN`, `DB_PATH`, and optionally `DASHBOARD_TOKEN`
-4. `bash pi/setup.sh`
+4. `bash pi/setup.sh` — installs/uses Node.js 24 and writes the systemd service to that Node path
 5. `sudo systemctl start diff-meets-mod`
 
 ### Update Workflow
 
 1. **Make changes in Replit** → in Replit shell: `bash pi/git-push.sh "your message"`
-2. **On the Pi**: `bash pi/update.sh`
+2. **On the Pi**: `bash pi/update.sh` — also upgrades to Node.js 24 and rewrites the service if the old Node path was still used
 
 ## Environment Secrets (Replit)
 
@@ -161,6 +162,7 @@ pi/
 ## Important Notes
 
 - `node:sqlite` is used instead of `better-sqlite3` to avoid native compilation issues on Pi
+- If the Pi journal shows `No such built-in module: node:sqlite`, the service is still using old Node.js 20; run the latest `bash pi/update.sh` or rerun `bash pi/setup.sh`
 - The SQLite database is stored in `data/bot.db` (auto-created, gitignored)
 - On the Pi, set `DB_PATH` in `.env` to a persistent path (e.g. `/home/pi/diff-meets-mod/data/bot.db`)
 - All slash commands are deployed globally on bot startup (may take up to an hour to propagate globally)

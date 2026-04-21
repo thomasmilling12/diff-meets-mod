@@ -1,18 +1,14 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import type { Command } from "../../client";
-import { getWarnings, clearWarnings } from "../../utils/warnings";
+import { getWarnings, clearWarnings } from "../../db/warnings";
 
 const command: Command = {
   data: new SlashCommandBuilder()
     .setName("warnings")
     .setDescription("View or clear warnings for a user")
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("The user to check").setRequired(true)
-    )
-    .addBooleanOption((opt) =>
-      opt.setName("clear").setDescription("Clear all warnings for this user").setRequired(false)
-    ),
+    .addUserOption(o => o.setName("user").setDescription("The user to check").setRequired(true))
+    .addBooleanOption(o => o.setName("clear").setDescription("Clear all warnings for this user").setRequired(false)),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser("user", true);
@@ -26,7 +22,6 @@ const command: Command = {
     }
 
     const warnings = getWarnings(guildId, target.id);
-
     if (warnings.length === 0) {
       await interaction.reply({ content: `**${target.tag}** has no warnings.` });
       return;
@@ -37,7 +32,7 @@ const command: Command = {
       .setTitle(`Warnings for ${target.tag}`)
       .setDescription(
         warnings.map((w, i) =>
-          `**${i + 1}.** ${w.reason}\n  By: ${w.moderator} — <t:${Math.floor(w.timestamp / 1000)}:R>`
+          `**${i + 1}.** ${w.reason}\n  By: ${w.moderator_tag} — <t:${w.created_at}:R>`
         ).join("\n\n")
       )
       .setFooter({ text: `Total: ${warnings.length} warning(s)` })

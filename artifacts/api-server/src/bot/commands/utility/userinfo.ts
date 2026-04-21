@@ -1,19 +1,22 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import type { Command } from "../../client";
-import { getWarnings } from "../../utils/warnings";
+import { getWarnings } from "../../db/warnings";
+import { getNotes } from "../../db/notes";
+import { getCases } from "../../db/cases";
 
 const command: Command = {
   data: new SlashCommandBuilder()
     .setName("userinfo")
     .setDescription("Get information about a user")
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("The user to inspect (defaults to yourself)").setRequired(false)
-    ),
+    .addUserOption(o => o.setName("user").setDescription("The user to inspect (defaults to yourself)").setRequired(false)),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const target = interaction.options.getUser("user") ?? interaction.user;
     const member = interaction.guild?.members.cache.get(target.id);
-    const warnings = getWarnings(interaction.guildId!, target.id);
+    const guildId = interaction.guildId!;
+    const warnings = getWarnings(guildId, target.id);
+    const notes = getNotes(guildId, target.id);
+    const cases = getCases(guildId, target.id);
 
     const embed = new EmbedBuilder()
       .setColor(0x5865f2)
@@ -23,6 +26,8 @@ const command: Command = {
         { name: "ID", value: target.id, inline: true },
         { name: "Account Created", value: `<t:${Math.floor(target.createdTimestamp / 1000)}:R>`, inline: true },
         { name: "Warnings", value: `${warnings.length}`, inline: true },
+        { name: "Cases", value: `${cases.length}`, inline: true },
+        { name: "Notes", value: `${notes.length}`, inline: true },
       );
 
     if (member) {
@@ -31,7 +36,6 @@ const command: Command = {
         { name: "Nickname", value: member.nickname ?? "None", inline: true },
         { name: "Roles", value: member.roles.cache.filter(r => r.id !== interaction.guildId).map(r => r.toString()).join(", ") || "None" },
       );
-
       if (member.isCommunicationDisabled()) {
         embed.addFields({ name: "Timeout Until", value: `<t:${Math.floor(member.communicationDisabledUntilTimestamp! / 1000)}:R>`, inline: true });
       }

@@ -15,49 +15,52 @@ const command: Command = {
         {
           name: "Moderation",
           value: [
-            "`/ban` — Ban a member",
+            "`/ban` — Ban a member (DMs them + creates case)",
             "`/unban` — Unban a user by ID",
-            "`/kick` — Kick a member",
+            "`/tempban` — Temporarily ban (auto-unbans)",
+            "`/kick` — Kick a member (DMs them + creates case)",
             "`/mute` — Timeout a member",
             "`/unmute` — Remove timeout",
             "`/warn` — Issue a warning",
             "`/warnings` — View/clear warnings",
             "`/purge` — Bulk delete messages",
+            "`/lock` — Lock/unlock a channel",
+            "`/slowmode` — Set channel slowmode",
+            "`/note` — Add private mod notes to users",
+            "`/case` — View mod case history",
           ].join("\n"),
         },
         {
           name: "Auto-Mod",
           value: [
-            "`/automod setup` — Configure auto-mod settings",
-            "`/automod status` — View current auto-mod config",
+            "`/automod setup` — Configure auto-mod",
+            "`/automod status` — View current config",
+            "`/wordfilter add/remove/list` — Manage word filter",
           ].join("\n"),
         },
         {
-          name: "Logging",
+          name: "Logging & Config",
           value: [
-            "`/log setchannel` — Set the log channel",
+            "`/log setchannel` — Set log channel",
             "`/log disable` — Disable logging",
+            "`/welcome set` — Set welcome messages",
+            "`/autorole set` — Auto-assign role on join",
+            "`/buttonroles add/post` — Self-assign role buttons",
+            "`/customcmd add/remove/list` — Custom commands",
           ].join("\n"),
         },
         {
           name: "Role Management",
           value: [
             "`/role add` — Add a role to a member",
-            "`/role remove` — Remove a role from a member",
-            "`/role info` — View role information",
-          ].join("\n"),
-        },
-        {
-          name: "Custom Commands",
-          value: [
-            "`/customcmd add` — Create a custom command",
-            "`/customcmd remove` — Delete a custom command",
-            "`/customcmd list` — List all custom commands",
+            "`/role remove` — Remove a role",
+            "`/role info` — View role info",
           ].join("\n"),
         },
         {
           name: "Utility",
           value: [
+            "`/announce` — Send a formatted announcement",
             "`/ping` — Check bot latency",
             "`/userinfo` — View user information",
             "`/serverinfo` — View server information",

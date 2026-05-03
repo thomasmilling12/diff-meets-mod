@@ -1,4 +1,4 @@
-import { Client, Events, Message, TextChannel, ChannelType, PermissionFlagsBits, EmbedBuilder } from "discord.js";
+import { Client, Events, Message, TextChannel, ChannelType, PermissionFlagsBits, EmbedBuilder, NewsChannel } from "discord.js";
 import { getConfig } from "../db/guildConfig";
 import { findCustomCommand } from "../db/customCommands";
 import { containsFilteredWord } from "../db/wordFilter";
@@ -7,6 +7,8 @@ import { sendModLog } from "../utils/modLog";
 import { isAutoThreadChannel } from "../db/autoThread";
 import { getAllEnabledModmailGuilds, getOpenModmailByUser, createModmailThread, getModmailByChannel } from "../db/modmail";
 import { getAfk, clearAfk } from "../db/afk";
+import { getSticky, updateStickyMessageId } from "../db/stickyMessages";
+import { isAutoPublish } from "../db/autoPublish";
 import { botLogger } from "../logger";
 
 const spamTracker: Map<string, { count: number; lastMessage: number }> = new Map();
@@ -194,6 +196,25 @@ export function registerMessageCreateEvent(client: Client): void {
             .then(m => setTimeout(() => m.delete().catch(() => {}), 8000))
             .catch(() => {});
         }
+      }
+    }
+
+    // ── Auto-publish (News channels) ─────────────────────────────────────────
+    if (message.channel instanceof NewsChannel) {
+      if (isAutoPublish(message.guildId, message.channelId)) {
+        await message.crosspost().catch(() => {});
+      }
+    }
+
+    // ── Sticky messages ───────────────────────────────────────────────────────
+    if (message.channel instanceof TextChannel) {
+      const sticky = getSticky(message.guildId, message.channelId);
+      if (sticky && message.id !== sticky.last_message_id) {
+        if (sticky.last_message_id) {
+          await message.channel.messages.delete(sticky.last_message_id).catch(() => {});
+        }
+        const stickyMsg = await message.channel.send(sticky.content).catch(() => null);
+        if (stickyMsg) updateStickyMessageId(message.guildId, message.channelId, stickyMsg.id);
       }
     }
 

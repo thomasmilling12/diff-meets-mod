@@ -64,6 +64,8 @@ import autothreadCommand from "./commands/config/autothread";
 import configstatusCommand from "./commands/config/configstatus";
 import reactionrolesCommand from "./commands/config/reactionroles";
 import presenceCommand from "./commands/config/presence";
+import stickyCommand from "./commands/config/sticky";
+import autopublishCommand from "./commands/config/autopublish";
 
 import pingCommand from "./commands/utility/ping";
 import userinfoCommand from "./commands/utility/userinfo";
@@ -81,7 +83,13 @@ import scheduleCommand from "./commands/utility/schedule";
 import snipeCommand from "./commands/utility/snipe";
 import embedCommand from "./commands/utility/embed";
 import userhistoryCommand from "./commands/utility/userhistory";
+import avatarCommand from "./commands/utility/avatar";
+import roleinfoCommand from "./commands/utility/roleinfo";
+import botinfoCommand from "./commands/utility/botinfo";
 import temproleCommand from "./commands/moderation/temprole";
+import softbanCommand from "./commands/moderation/softban";
+import massbanCommand from "./commands/moderation/massban";
+import nicknameCommand from "./commands/moderation/nickname";
 import raidmodeCommand from "./commands/config/raidmode";
 
 import quickWarnCommand from "./commands/contextmenus/warnUser";
@@ -92,6 +100,7 @@ const allCommands = [
   banCommand, unbanCommand, kickCommand, muteCommand, unmuteCommand,
   warnCommand, warningsCommand, purgeCommand, tempbanCommand, lockCommand,
   slowmodeCommand, noteCommand, caseCommand, ticketCommand, closeticketCommand,
+  softbanCommand, massbanCommand, nicknameCommand,
 
   roleCommand, selfRoleCommand, joinRoleCommand, leaveRoleCommand, roleIdCommand, massRoleCommand,
 
@@ -100,11 +109,11 @@ const allCommands = [
   logconfigCommand, escalationconfigCommand, raidconfigCommand,
   ticketsetupCommand, verifysetupCommand, statschannelCommand,
   starboardCommand, modmailCommand, invitetrackingCommand, autothreadCommand,
-  configstatusCommand, reactionrolesCommand, presenceCommand,
+  configstatusCommand, reactionrolesCommand, presenceCommand, stickyCommand, autopublishCommand,
 
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
   giveawayCommand, funCommand, backupCommand, remindCommand, afkCommand, reportCommand, scheduleCommand,
-  snipeCommand, embedCommand, userhistoryCommand,
+  snipeCommand, embedCommand, userhistoryCommand, avatarCommand, roleinfoCommand, botinfoCommand,
 
   temproleCommand, raidmodeCommand,
 

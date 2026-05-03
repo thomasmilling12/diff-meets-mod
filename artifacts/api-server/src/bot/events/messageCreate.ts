@@ -9,6 +9,8 @@ import { getAllEnabledModmailGuilds, getOpenModmailByUser, createModmailThread, 
 import { getAfk, clearAfk } from "../db/afk";
 import { getSticky, updateStickyMessageId } from "../db/stickyMessages";
 import { isAutoPublish } from "../db/autoPublish";
+import { getGuildHighlights } from "../db/highlights";
+import { getCountingByChannel, incrementCount, resetCount } from "../db/countingChannels";
 import { botLogger } from "../logger";
 
 const spamTracker: Map<string, { count: number; lastMessage: number }> = new Map();
@@ -195,6 +197,53 @@ export function registerMessageCreateEvent(client: Client): void {
           await message.reply({ content: `💤 <@${userId}> is currently AFK: **${afk.reason}** (since <t:${afk.set_at}:R>)` })
             .then(m => setTimeout(() => m.delete().catch(() => {}), 8000))
             .catch(() => {});
+        }
+      }
+    }
+
+    // ── Counting channel ──────────────────────────────────────────────────────
+    const countingConfig = getCountingByChannel(message.channelId);
+    if (countingConfig && message.guildId === countingConfig.guild_id) {
+      const num = parseInt(message.content.trim(), 10);
+      const expected = countingConfig.current_count + 1;
+      const isCorrect = !isNaN(num) && num === expected && message.content.trim() === String(num);
+      const isDoubleCount = countingConfig.last_user_id === message.author.id;
+
+      if (isCorrect && !isDoubleCount) {
+        await message.react("✅").catch(() => {});
+        incrementCount(message.guildId, message.author.id, num);
+      } else {
+        const reason = isDoubleCount ? "You can't count twice in a row!" : `Wrong number! Expected **${expected}**.`;
+        await message.react("❌").catch(() => {});
+        await message.reply(`💥 ${reason} The count has been reset to **0**. Next: **1**`).catch(() => {});
+        resetCount(message.guildId);
+      }
+      return;
+    }
+
+    // ── Highlights ────────────────────────────────────────────────────────────
+    if (message.guildId && !message.author.bot) {
+      const highlights = getGuildHighlights(message.guildId);
+      if (highlights.length > 0) {
+        const contentLower = message.content.toLowerCase();
+        const alerted = new Set<string>();
+        for (const h of highlights) {
+          if (h.user_id === message.author.id) continue;
+          if (alerted.has(h.user_id)) continue;
+          const member = message.guild?.members.cache.get(h.user_id);
+          if (!member) continue;
+          const readable = ("permissionsFor" in message.channel) ? message.channel.permissionsFor(member)?.has("ViewChannel") : false;
+          if (!readable) continue;
+          if (contentLower.includes(h.keyword)) {
+            alerted.add(h.user_id);
+            const preview = message.content.slice(0, 200);
+            await member.user.send({
+              embeds: [new EmbedBuilder().setColor(0xffd700).setTitle("💬 Highlight Triggered")
+                .setDescription(`Your keyword \`${h.keyword}\` was mentioned in **${message.guild?.name}** → <#${message.channelId}>`)
+                .addFields({ name: "Message", value: preview }, { name: "Author", value: message.author.tag, inline: true })
+                .setURL(message.url).setTimestamp()],
+            }).catch(() => {});
+          }
         }
       }
     }

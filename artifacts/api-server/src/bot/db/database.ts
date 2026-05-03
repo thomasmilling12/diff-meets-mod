@@ -195,6 +195,29 @@ db.exec(`CREATE TABLE IF NOT EXISTS bot_presence (
   activity_text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'online'
 )`);
 
+db.exec(`CREATE TABLE IF NOT EXISTS highlights (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL, user_id TEXT NOT NULL, keyword TEXT NOT NULL,
+  UNIQUE(guild_id, user_id, keyword)
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS counting_channels (
+  guild_id TEXT PRIMARY KEY, channel_id TEXT NOT NULL,
+  current_count INTEGER NOT NULL DEFAULT 0, last_user_id TEXT,
+  high_score INTEGER NOT NULL DEFAULT 0, total_counts INTEGER NOT NULL DEFAULT 0
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS quarantine_config (
+  guild_id TEXT PRIMARY KEY, role_id TEXT NOT NULL
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS quarantined_users (
+  guild_id TEXT NOT NULL, user_id TEXT NOT NULL,
+  reason TEXT NOT NULL, moderator_tag TEXT NOT NULL,
+  quarantined_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  PRIMARY KEY(guild_id, user_id)
+)`);
+
 db.exec(`CREATE TABLE IF NOT EXISTS sticky_messages (
   guild_id TEXT NOT NULL, channel_id TEXT NOT NULL,
   content TEXT NOT NULL, last_message_id TEXT,

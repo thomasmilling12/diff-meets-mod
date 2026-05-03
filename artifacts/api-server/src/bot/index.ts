@@ -86,11 +86,17 @@ import userhistoryCommand from "./commands/utility/userhistory";
 import avatarCommand from "./commands/utility/avatar";
 import roleinfoCommand from "./commands/utility/roleinfo";
 import botinfoCommand from "./commands/utility/botinfo";
+import highlightCommand from "./commands/utility/highlight";
+import channelinfoCommand from "./commands/utility/channelinfo";
 import temproleCommand from "./commands/moderation/temprole";
 import softbanCommand from "./commands/moderation/softban";
 import massbanCommand from "./commands/moderation/massban";
 import nicknameCommand from "./commands/moderation/nickname";
+import quarantineCommand from "./commands/moderation/quarantine";
+import banlistCommand from "./commands/moderation/banlist";
+import moveCommand from "./commands/moderation/move";
 import raidmodeCommand from "./commands/config/raidmode";
+import countingCommand from "./commands/config/counting";
 
 import quickWarnCommand from "./commands/contextmenus/warnUser";
 import quickBanCommand from "./commands/contextmenus/banUser";
@@ -100,7 +106,7 @@ const allCommands = [
   banCommand, unbanCommand, kickCommand, muteCommand, unmuteCommand,
   warnCommand, warningsCommand, purgeCommand, tempbanCommand, lockCommand,
   slowmodeCommand, noteCommand, caseCommand, ticketCommand, closeticketCommand,
-  softbanCommand, massbanCommand, nicknameCommand,
+  softbanCommand, massbanCommand, nicknameCommand, quarantineCommand, banlistCommand, moveCommand,
 
   roleCommand, selfRoleCommand, joinRoleCommand, leaveRoleCommand, roleIdCommand, massRoleCommand,
 
@@ -109,11 +115,12 @@ const allCommands = [
   logconfigCommand, escalationconfigCommand, raidconfigCommand,
   ticketsetupCommand, verifysetupCommand, statschannelCommand,
   starboardCommand, modmailCommand, invitetrackingCommand, autothreadCommand,
-  configstatusCommand, reactionrolesCommand, presenceCommand, stickyCommand, autopublishCommand,
+  configstatusCommand, reactionrolesCommand, presenceCommand, stickyCommand, autopublishCommand, countingCommand,
 
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
   giveawayCommand, funCommand, backupCommand, remindCommand, afkCommand, reportCommand, scheduleCommand,
   snipeCommand, embedCommand, userhistoryCommand, avatarCommand, roleinfoCommand, botinfoCommand,
+  highlightCommand, channelinfoCommand,
 
   temproleCommand, raidmodeCommand,
 

@@ -50,3 +50,7 @@ Thumbs.db
 
 # Pi deployment secrets
 pi/.env
+
+# SQLite WAL/SHM journal files (generated at runtime — never commit these)
+*.db-shm
+*.db-wal

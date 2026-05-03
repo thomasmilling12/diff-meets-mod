@@ -44,6 +44,9 @@ echo ""
 cd "$REPO_DIR"
 
 echo "[1/5] Pulling latest changes from git..."
+# SQLite WAL/SHM files are runtime-only — reset them so git pull never conflicts
+git checkout -- "artifacts/api-server/data/bot.db-shm" 2>/dev/null || true
+git checkout -- "artifacts/api-server/data/bot.db-wal"  2>/dev/null || true
 git pull
 
 echo "[2/5] Updating dependencies..."

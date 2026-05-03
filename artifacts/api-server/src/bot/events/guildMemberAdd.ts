@@ -3,7 +3,10 @@ import { getConfig } from "../db/guildConfig";
 import { checkRaid } from "../utils/raidProtectionHandler";
 import { getInviteTracking, upsertInviteUse, getInviteUse, setMemberInvite } from "../db/inviteTracking";
 import { getSavedRoles, clearSavedRoles } from "../db/rolePersistence";
+import { isDehoistEnabled, isHoisted } from "../db/dehoist";
 import { botLogger } from "../logger";
+
+const DEHOIST_PREFIX = "\u200b";
 
 const NEW_ACCOUNT_DAYS = 7;
 const NEW_ACCOUNT_MS = NEW_ACCOUNT_DAYS * 24 * 60 * 60 * 1000;
@@ -51,6 +54,14 @@ export function registerGuildMemberAddEvent(client: Client): void {
             ).setTimestamp();
           await logChannel.send({ embeds: [embed] }).catch(() => {});
         }
+      }
+    }
+
+    // ── Auto-dehoist ──────────────────────────────────────────────────────────
+    if (isDehoistEnabled(guildId) && member.manageable) {
+      const display = member.nickname ?? member.user.username;
+      if (isHoisted(display)) {
+        await member.setNickname(`${DEHOIST_PREFIX}${display}`, "Auto-dehoist on join").catch(() => {});
       }
     }
 

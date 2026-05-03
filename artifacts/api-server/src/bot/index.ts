@@ -20,6 +20,7 @@ import { startGiveawayChecker } from "./utils/giveawayManager";
 import { startReminderChecker } from "./utils/reminderChecker";
 import { startScheduledAnnouncementChecker } from "./utils/scheduledAnnouncementChecker";
 import { startTempRoleChecker } from "./utils/tempRoleChecker";
+import { startTempLockChecker } from "./tasks/tempLockChecker";
 
 import banCommand from "./commands/moderation/ban";
 import unbanCommand from "./commands/moderation/unban";
@@ -88,6 +89,11 @@ import roleinfoCommand from "./commands/utility/roleinfo";
 import botinfoCommand from "./commands/utility/botinfo";
 import highlightCommand from "./commands/utility/highlight";
 import channelinfoCommand from "./commands/utility/channelinfo";
+import tagCommand from "./commands/utility/tag";
+import suggestCommand from "./commands/utility/suggest";
+import membercountCommand from "./commands/utility/membercount";
+import lookupCommand from "./commands/utility/lookup";
+import serverCommand from "./commands/utility/server";
 import temproleCommand from "./commands/moderation/temprole";
 import softbanCommand from "./commands/moderation/softban";
 import massbanCommand from "./commands/moderation/massban";
@@ -95,6 +101,10 @@ import nicknameCommand from "./commands/moderation/nickname";
 import quarantineCommand from "./commands/moderation/quarantine";
 import banlistCommand from "./commands/moderation/banlist";
 import moveCommand from "./commands/moderation/move";
+import nukeCommand from "./commands/moderation/nuke";
+import templockCommand from "./commands/moderation/templock";
+import dehoistCommand from "./commands/moderation/dehoist";
+import threadCommand from "./commands/moderation/thread";
 import raidmodeCommand from "./commands/config/raidmode";
 import countingCommand from "./commands/config/counting";
 
@@ -107,6 +117,7 @@ const allCommands = [
   warnCommand, warningsCommand, purgeCommand, tempbanCommand, lockCommand,
   slowmodeCommand, noteCommand, caseCommand, ticketCommand, closeticketCommand,
   softbanCommand, massbanCommand, nicknameCommand, quarantineCommand, banlistCommand, moveCommand,
+  nukeCommand, templockCommand, dehoistCommand, threadCommand,
 
   roleCommand, selfRoleCommand, joinRoleCommand, leaveRoleCommand, roleIdCommand, massRoleCommand,
 
@@ -120,7 +131,8 @@ const allCommands = [
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
   giveawayCommand, funCommand, backupCommand, remindCommand, afkCommand, reportCommand, scheduleCommand,
   snipeCommand, embedCommand, userhistoryCommand, avatarCommand, roleinfoCommand, botinfoCommand,
-  highlightCommand, channelinfoCommand,
+  highlightCommand, channelinfoCommand, tagCommand, suggestCommand,
+  membercountCommand, lookupCommand, serverCommand,
 
   temproleCommand, raidmodeCommand,
 
@@ -163,6 +175,7 @@ export async function startBot(): Promise<void> {
     startReminderChecker(client);
     startScheduledAnnouncementChecker(client);
     startTempRoleChecker(client);
+    startTempLockChecker(client);
   });
 
   try {

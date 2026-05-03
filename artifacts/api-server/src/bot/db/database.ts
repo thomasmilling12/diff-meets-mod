@@ -195,6 +195,34 @@ db.exec(`CREATE TABLE IF NOT EXISTS bot_presence (
   activity_text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'online'
 )`);
 
+db.exec(`CREATE TABLE IF NOT EXISTS tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL, name TEXT NOT NULL, content TEXT NOT NULL,
+  author_id TEXT NOT NULL, created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  uses INTEGER NOT NULL DEFAULT 0, UNIQUE(guild_id, name)
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS suggestion_channels (
+  guild_id TEXT PRIMARY KEY, channel_id TEXT NOT NULL
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS suggestions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL, channel_id TEXT NOT NULL, message_id TEXT NOT NULL,
+  user_id TEXT NOT NULL, content TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending', response TEXT,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS dehoist_config (
+  guild_id TEXT PRIMARY KEY, enabled INTEGER NOT NULL DEFAULT 0
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS templocks (
+  guild_id TEXT NOT NULL, channel_id TEXT NOT NULL,
+  unlock_at INTEGER NOT NULL, PRIMARY KEY(guild_id, channel_id)
+)`);
+
 db.exec(`CREATE TABLE IF NOT EXISTS highlights (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   guild_id TEXT NOT NULL, user_id TEXT NOT NULL, keyword TEXT NOT NULL,

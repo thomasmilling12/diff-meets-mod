@@ -1,5 +1,8 @@
 import { Client, Events, GuildMember, PartialGuildMember, TextChannel, EmbedBuilder } from "discord.js";
 import { getConfig } from "../db/guildConfig";
+import { isDehoistEnabled, isHoisted } from "../db/dehoist";
+
+const DEHOIST_PREFIX = "\u200b";
 
 export function registerGuildMemberUpdateEvent(client: Client): void {
   client.on(Events.GuildMemberUpdate, async (oldMember: GuildMember | PartialGuildMember, newMember: GuildMember) => {
@@ -16,6 +19,14 @@ export function registerGuildMemberUpdateEvent(client: Client): void {
     const removed = [...oldRoles.values()].filter(r => !newRoles.has(r.id) && r.id !== newMember.guild.id);
 
     const nicknameChanged = oldMember.nickname !== newMember.nickname;
+
+    // ── Auto-dehoist on nickname change ───────────────────────────────────────
+    if (nicknameChanged && isDehoistEnabled(newMember.guild.id) && newMember.manageable) {
+      const display = newMember.nickname ?? newMember.user.username;
+      if (isHoisted(display)) {
+        await newMember.setNickname(`${DEHOIST_PREFIX}${display}`, "Auto-dehoist").catch(() => {});
+      }
+    }
 
     if (added.length === 0 && removed.length === 0 && !nicknameChanged) return;
 

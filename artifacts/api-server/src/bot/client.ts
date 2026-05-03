@@ -1,12 +1,23 @@
 import { Client, GatewayIntentBits, Partials, Collection } from "discord.js";
-import type { ChatInputCommandInteraction, RESTPostAPIChatInputApplicationCommandsJSONBody } from "discord.js";
+import type {
+  ChatInputCommandInteraction,
+  UserContextMenuCommandInteraction,
+  MessageContextMenuCommandInteraction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
+} from "discord.js";
+
+export type AnyCommandInteraction =
+  | ChatInputCommandInteraction
+  | UserContextMenuCommandInteraction
+  | MessageContextMenuCommandInteraction;
 
 export interface Command {
   data: {
     name: string;
-    toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody;
+    toJSON(): RESTPostAPIChatInputApplicationCommandsJSONBody | RESTPostAPIContextMenuApplicationCommandsJSONBody;
   };
-  execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  execute: (interaction: AnyCommandInteraction) => Promise<void>;
 }
 
 export const client = new Client({
@@ -19,7 +30,7 @@ export const client = new Client({
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.DirectMessages,
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.GuildMember],
+  partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.Reaction],
 });
 
 export const commands = new Collection<string, Command>();

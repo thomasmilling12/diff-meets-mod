@@ -8,6 +8,7 @@ export interface Ticket {
   user_tag: string;
   reason: string | null;
   status: string;
+  claimed_by_tag: string | null;
   created_at: number;
   closed_at: number | null;
   closed_by_tag: string | null;
@@ -53,6 +54,10 @@ export function closeTicket(ticketId: number, closedByTag: string): void {
     .run(closedByTag, ticketId);
 }
 
+export function claimTicket(ticketId: number, claimedByTag: string): void {
+  db.prepare("UPDATE tickets SET claimed_by_tag = ? WHERE id = ?").run(claimedByTag, ticketId);
+}
+
 export function getOpenTicketByUser(guildId: string, userId: string): Ticket | null {
   return (db.prepare("SELECT * FROM tickets WHERE guild_id = ? AND user_id = ? AND status = 'open'")
     .get(guildId, userId) as unknown as Ticket) ?? null;
@@ -66,4 +71,14 @@ export function getOpenTicketCount(guildId: string, userId: string): number {
   const r = db.prepare("SELECT COUNT(*) as cnt FROM tickets WHERE guild_id = ? AND user_id = ? AND status = 'open'")
     .get(guildId, userId) as unknown as { cnt: number };
   return r.cnt;
+}
+
+export function getTicketsByGuild(guildId: string, limit = 50, offset = 0): Ticket[] {
+  return db.prepare("SELECT * FROM tickets WHERE guild_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
+    .all(guildId, limit, offset) as unknown as Ticket[];
+}
+
+export function countTicketsByGuild(guildId: string): number {
+  return (db.prepare("SELECT COUNT(*) as cnt FROM tickets WHERE guild_id = ?")
+    .get(guildId) as unknown as { cnt: number }).cnt;
 }

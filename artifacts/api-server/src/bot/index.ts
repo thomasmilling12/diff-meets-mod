@@ -10,9 +10,12 @@ import { registerGuildMemberUpdateEvent } from "./events/guildMemberUpdate";
 import { registerMessageUpdateEvent } from "./events/messageUpdate";
 import { registerMessageDeleteEvent } from "./events/messageDelete";
 import { registerVoiceStateUpdateEvent } from "./events/voiceStateUpdate";
+import { registerMessageReactionAddEvent } from "./events/messageReactionAdd";
+import { registerServerEvents } from "./events/serverEvents";
 import { deployCommands } from "./deploy-commands";
 import { startTempBanChecker } from "./utils/tempbanChecker";
 import { startStatsUpdater } from "./utils/statsUpdater";
+import { startGiveawayChecker } from "./utils/giveawayManager";
 
 import banCommand from "./commands/moderation/ban";
 import unbanCommand from "./commands/moderation/unban";
@@ -50,6 +53,11 @@ import raidconfigCommand from "./commands/config/raidconfig";
 import ticketsetupCommand from "./commands/config/ticketsetup";
 import verifysetupCommand from "./commands/config/verifysetup";
 import statschannelCommand from "./commands/config/statschannel";
+import starboardCommand from "./commands/config/starboard";
+import modmailCommand from "./commands/config/modmail";
+import invitetrackingCommand from "./commands/config/invitetracking";
+import autothreadCommand from "./commands/config/autothread";
+import configstatusCommand from "./commands/config/configstatus";
 
 import pingCommand from "./commands/utility/ping";
 import userinfoCommand from "./commands/utility/userinfo";
@@ -57,6 +65,13 @@ import serverinfoCommand from "./commands/utility/serverinfo";
 import helpCommand from "./commands/utility/help";
 import announceCommand from "./commands/utility/announce";
 import pollCommand from "./commands/utility/poll";
+import giveawayCommand from "./commands/utility/giveaway";
+import funCommand from "./commands/utility/fun";
+import backupCommand from "./commands/utility/backup";
+
+import quickWarnCommand from "./commands/contextmenus/warnUser";
+import quickBanCommand from "./commands/contextmenus/banUser";
+import deleteMessageCommand from "./commands/contextmenus/deleteMessage";
 
 const allCommands = [
   banCommand, unbanCommand, kickCommand, muteCommand, unmuteCommand,
@@ -69,8 +84,12 @@ const allCommands = [
   autoroleCommand, wordfilterCommand, buttonrolesCommand,
   logconfigCommand, escalationconfigCommand, raidconfigCommand,
   ticketsetupCommand, verifysetupCommand, statschannelCommand,
+  starboardCommand, modmailCommand, invitetrackingCommand, autothreadCommand, configstatusCommand,
 
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
+  giveawayCommand, funCommand, backupCommand,
+
+  quickWarnCommand, quickBanCommand, deleteMessageCommand,
 ];
 
 export async function startBot(): Promise<void> {
@@ -93,6 +112,8 @@ export async function startBot(): Promise<void> {
   registerMessageUpdateEvent(client);
   registerMessageDeleteEvent(client);
   registerVoiceStateUpdateEvent(client);
+  registerMessageReactionAddEvent(client);
+  registerServerEvents(client);
 
   client.once("clientReady", async (c) => {
     try {
@@ -102,6 +123,7 @@ export async function startBot(): Promise<void> {
     }
     startTempBanChecker(client);
     startStatsUpdater(client);
+    startGiveawayChecker(client);
   });
 
   try {

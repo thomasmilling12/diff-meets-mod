@@ -7,6 +7,7 @@ export interface GuildConfig {
   log_members_channel_id: string | null;
   log_voice_channel_id: string | null;
   log_roles_channel_id: string | null;
+  log_server_channel_id: string | null;
   welcome_channel_id: string | null;
   welcome_message: string | null;
   auto_role_id: string | null;
@@ -36,13 +37,14 @@ export function getLogChannel(guildId: string): string | null {
   return getConfig(guildId).log_channel_id;
 }
 
-export type ExtendedLogType = "messages" | "members" | "voice" | "roles";
+export type ExtendedLogType = "messages" | "members" | "voice" | "roles" | "server";
 
 const LOG_COL: Record<ExtendedLogType, string> = {
   messages: "log_messages_channel_id",
   members: "log_members_channel_id",
   voice: "log_voice_channel_id",
   roles: "log_roles_channel_id",
+  server: "log_server_channel_id",
 };
 
 export function setExtendedLogChannel(guildId: string, type: ExtendedLogType, channelId: string | null): void {

@@ -5,12 +5,14 @@ import { containsFilteredWord } from "../db/wordFilter";
 import { isPhishingLink } from "../utils/antiphishing";
 import { sendModLog } from "../utils/modLog";
 import { isAutoThreadChannel } from "../db/autoThread";
-import { getAllEnabledModmailGuilds, getOpenModmailByUser, createModmailThread } from "../db/modmail";
+import { getAllEnabledModmailGuilds, getOpenModmailByUser, createModmailThread, getModmailByChannel } from "../db/modmail";
+import { getAfk, clearAfk } from "../db/afk";
 import { botLogger } from "../logger";
 
 const spamTracker: Map<string, { count: number; lastMessage: number }> = new Map();
 const INVITE_REGEX = /(discord\.gg|discord\.com\/invite|discordapp\.com\/invite)\/[a-zA-Z0-9-]+/i;
 const LINK_REGEX = /https?:\/\/[^\s]+/i;
+const MENTION_REGEX = /<@!?(\d+)>/g;
 
 async function sendAndAutoDelete(channel: TextChannel, content: string, ms = 5000): Promise<void> {
   const msg = await channel.send(content).catch(() => null);
@@ -85,7 +87,8 @@ async function autoModCheck(message: Message, config: ReturnType<typeof getConfi
 
 export function registerMessageCreateEvent(client: Client): void {
   client.on(Events.MessageCreate, async (message: Message) => {
-    // ── Handle DMs for modmail ────────────────────────────────────────────────
+
+    // ── Handle DMs — modmail forwarding ──────────────────────────────────────
     if (!message.guild && !message.author.bot) {
       try {
         const guilds = getAllEnabledModmailGuilds();
@@ -109,7 +112,7 @@ export function registerMessageCreateEvent(client: Client): void {
           } else {
             const category = mmConfig.category_id ? guild.channels.cache.get(mmConfig.category_id) : undefined;
             const channel = await guild.channels.create({
-              name: `mail-${message.author.username}`,
+              name: `mail-${message.author.username}`.slice(0, 100),
               type: ChannelType.GuildText,
               parent: category?.id,
               topic: `Modmail from ${message.author.tag} (${message.author.id})`,
@@ -142,8 +145,57 @@ export function registerMessageCreateEvent(client: Client): void {
     if (message.author.bot || !message.guild || !message.guildId) return;
 
     const config = getConfig(message.guildId);
+
+    // ── Modmail reply: mod types in modmail channel → forward to user DM ─────
+    if (message.channel instanceof TextChannel) {
+      const thread = getModmailByChannel(message.channelId);
+      if (thread && thread.status === "open") {
+        try {
+          const user = await client.users.fetch(thread.user_id).catch(() => null);
+          if (user) {
+            const embed = new EmbedBuilder()
+              .setColor(0x5865f2)
+              .setAuthor({ name: `${message.guild.name} — Support`, iconURL: message.guild.iconURL() ?? undefined })
+              .setDescription(message.content || "*(attachment)*")
+              .setTimestamp();
+            await user.send({ embeds: [embed] }).catch(() => {});
+            await message.react("✅").catch(() => {});
+          }
+        } catch { /* ignore */ }
+        return;
+      }
+    }
+
     const blocked = await autoModCheck(message, config);
     if (blocked) return;
+
+    // ── AFK: clear sender's AFK if they just spoke ───────────────────────────
+    const senderAfk = getAfk(message.author.id, message.guildId);
+    if (senderAfk) {
+      clearAfk(message.author.id, message.guildId);
+      await message.reply({ content: "Welcome back! Your AFK status has been cleared." })
+        .then(m => setTimeout(() => m.delete().catch(() => {}), 5000))
+        .catch(() => {});
+    }
+
+    // ── AFK: notify when a mentioned user is AFK ─────────────────────────────
+    if (message.channel instanceof TextChannel) {
+      const mentioned = new Set<string>();
+      let match: RegExpExecArray | null;
+      MENTION_REGEX.lastIndex = 0;
+      while ((match = MENTION_REGEX.exec(message.content)) !== null) {
+        mentioned.add(match[1]);
+      }
+      for (const userId of mentioned) {
+        if (userId === message.author.id) continue;
+        const afk = getAfk(userId, message.guildId);
+        if (afk) {
+          await message.reply({ content: `💤 <@${userId}> is currently AFK: **${afk.reason}** (since <t:${afk.set_at}:R>)` })
+            .then(m => setTimeout(() => m.delete().catch(() => {}), 8000))
+            .catch(() => {});
+        }
+      }
+    }
 
     // ── Auto-thread ───────────────────────────────────────────────────────────
     if (message.channel instanceof TextChannel) {
@@ -155,7 +207,7 @@ export function registerMessageCreateEvent(client: Client): void {
           const archiveMap: Record<number, 60 | 1440 | 4320 | 10080> = { 1: 60, 24: 1440, 72: 4320, 168: 10080 };
           const archiveDuration = archiveMap[atConfig.archive_hours] ?? 1440;
           await message.startThread({ name: threadName, autoArchiveDuration: archiveDuration });
-        } catch { /* ignore thread creation failures */ }
+        } catch { /* ignore */ }
       }
 
       // ── Custom commands ───────────────────────────────────────────────────

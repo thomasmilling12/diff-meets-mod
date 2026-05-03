@@ -164,4 +164,35 @@ db.exec(`CREATE TABLE IF NOT EXISTS auto_thread_channels (
   PRIMARY KEY(guild_id, channel_id)
 )`);
 
+db.exec(`CREATE TABLE IF NOT EXISTS reminders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL, guild_id TEXT, message TEXT NOT NULL,
+  remind_at INTEGER NOT NULL, created_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  sent INTEGER DEFAULT 0
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS afk_users (
+  user_id TEXT NOT NULL, guild_id TEXT NOT NULL,
+  reason TEXT NOT NULL, set_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  PRIMARY KEY(user_id, guild_id)
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS reaction_roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL, message_id TEXT NOT NULL,
+  emoji TEXT NOT NULL, role_id TEXT NOT NULL,
+  UNIQUE(guild_id, message_id, emoji)
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS scheduled_announcements (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL, message TEXT NOT NULL,
+  send_at INTEGER NOT NULL, sent INTEGER DEFAULT 0, created_by_tag TEXT NOT NULL
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS bot_presence (
+  id INTEGER PRIMARY KEY, activity_type TEXT NOT NULL,
+  activity_text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'online'
+)`);
+
 botLogger.info({ dbPath }, "Database initialized");

@@ -1,12 +1,13 @@
-import { Guild, TextChannel, PermissionFlagsBits, EmbedBuilder } from "discord.js";
+import { Guild, GuildMember, TextChannel, PermissionFlagsBits, EmbedBuilder } from "discord.js";
 import { getRaidConfig } from "../db/raidProtection";
 import { getLogChannel } from "../db/guildConfig";
 import { botLogger } from "../logger";
 
 const joinTimestamps: Map<string, number[]> = new Map();
+const recentJoiners: Map<string, string[]> = new Map();
 const raidLocked: Set<string> = new Set();
 
-export async function checkRaid(member: { guild: Guild; id: string }): Promise<boolean> {
+export async function checkRaid(member: GuildMember): Promise<boolean> {
   const guildId = member.guild.id;
   const config = getRaidConfig(guildId);
 
@@ -18,17 +19,32 @@ export async function checkRaid(member: { guild: Guild; id: string }): Promise<b
   timestamps.push(now);
   joinTimestamps.set(guildId, timestamps);
 
+  const joiners = recentJoiners.get(guildId) ?? [];
+  joiners.push(member.id);
+  recentJoiners.set(guildId, joiners);
+
   if (timestamps.length < config.join_threshold) return false;
-  if (raidLocked.has(guildId)) return true;
+  if (raidLocked.has(guildId)) {
+    if (config.action === "KICK") {
+      await member.kick("Raid protection — kicked during active lockdown").catch(() => {});
+    }
+    return true;
+  }
 
   raidLocked.add(guildId);
   botLogger.warn({ guildId, joins: timestamps.length }, "Raid detected — triggering lockdown");
 
   const guild = member.guild;
+  const kickedIds = [...joiners];
+
   const embed = new EmbedBuilder()
     .setColor(0xff0000)
     .setTitle("🚨 Raid Detected — Auto-Lockdown")
-    .setDescription(`**${timestamps.length}** members joined in **${config.time_window}s**.\nAll channels have been locked.`)
+    .setDescription(
+      `**${timestamps.length}** members joined in **${config.time_window}s**.\n` +
+      (config.action === "LOCK" ? "All channels have been locked." :
+       config.action === "KICK" ? `Recent joiners are being kicked.` : "")
+    )
     .setTimestamp();
 
   try {
@@ -42,6 +58,18 @@ export async function checkRaid(member: { guild: Guild; id: string }): Promise<b
       }
     }
 
+    if (config.action === "KICK") {
+      let kicked = 0;
+      for (const userId of kickedIds) {
+        const m = guild.members.cache.get(userId);
+        if (m && !m.permissions.has(PermissionFlagsBits.ManageGuild)) {
+          await m.kick("Raid protection — auto-kick").catch(() => {});
+          kicked++;
+        }
+      }
+      embed.addFields({ name: "Members Kicked", value: `${kicked}`, inline: true });
+    }
+
     const logChannelId = getLogChannel(guildId);
     if (logChannelId) {
       const logChannel = guild.channels.cache.get(logChannelId) as TextChannel | undefined;
@@ -52,6 +80,7 @@ export async function checkRaid(member: { guild: Guild; id: string }): Promise<b
       setTimeout(async () => {
         raidLocked.delete(guildId);
         joinTimestamps.delete(guildId);
+        recentJoiners.delete(guildId);
         for (const channel of guild.channels.cache.values()) {
           if (channel.isTextBased() && "permissionOverwrites" in channel) {
             await channel.permissionOverwrites.edit(guild.roles.everyone, {
@@ -80,4 +109,5 @@ export function isRaidLocked(guildId: string): boolean {
 export function manualUnlock(guildId: string): void {
   raidLocked.delete(guildId);
   joinTimestamps.delete(guildId);
+  recentJoiners.delete(guildId);
 }

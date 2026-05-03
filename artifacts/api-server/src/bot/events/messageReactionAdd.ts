@@ -1,5 +1,6 @@
 import { Client, Events, MessageReaction, PartialMessageReaction, User, PartialUser, EmbedBuilder, TextChannel } from "discord.js";
 import { getStarboardConfig, getStarboardEntry, upsertStarboardEntry, updateStarCount } from "../db/starboard";
+import { getReactionRole } from "../db/reactionRoles";
 
 export function registerMessageReactionAddEvent(client: Client): void {
   client.on(Events.MessageReactionAdd, async (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
@@ -10,6 +11,21 @@ export function registerMessageReactionAddEvent(client: Client): void {
     const { message } = reaction;
     if (!message.guildId || !message.guild) return;
 
+    const emojiKey = reaction.emoji.id ? `<:${reaction.emoji.name}:${reaction.emoji.id}>` : (reaction.emoji.name ?? "");
+
+    // ── Reaction roles ────────────────────────────────────────────────────────
+    const reactionRole = getReactionRole(message.guildId, message.id, emojiKey)
+      ?? getReactionRole(message.guildId, message.id, reaction.emoji.name ?? "");
+    if (reactionRole) {
+      const member = message.guild.members.cache.get(user.id) ?? await message.guild.members.fetch(user.id).catch(() => null);
+      if (member) {
+        const role = message.guild.roles.cache.get(reactionRole.role_id);
+        if (role) await member.roles.add(role).catch(() => {});
+      }
+      return;
+    }
+
+    // ── Starboard ─────────────────────────────────────────────────────────────
     const config = getStarboardConfig(message.guildId);
     if (!config.enabled || !config.channel_id) return;
     if (reaction.emoji.name !== config.emoji && reaction.emoji.toString() !== config.emoji) return;
@@ -45,12 +61,10 @@ export function registerMessageReactionAddEvent(client: Client): void {
       try {
         const sbMsg = await starboardChannel.messages.fetch(existing.starboard_message_id);
         await sbMsg.edit({ content, embeds: [embed] });
-      } catch { /* message may have been deleted */ }
+      } catch { /* deleted */ }
     } else {
       const sbMsg = await starboardChannel.send({ content, embeds: [embed] }).catch(() => null);
-      if (sbMsg) {
-        upsertStarboardEntry(message.guildId, message.id, sbMsg.id, message.channelId, starCount);
-      }
+      if (sbMsg) upsertStarboardEntry(message.guildId, message.id, sbMsg.id, message.channelId, starCount);
     }
   });
 }

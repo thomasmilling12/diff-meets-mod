@@ -4,6 +4,9 @@ import { checkRaid } from "../utils/raidProtectionHandler";
 import { getInviteTracking, upsertInviteUse, getInviteUse, setMemberInvite } from "../db/inviteTracking";
 import { botLogger } from "../logger";
 
+const NEW_ACCOUNT_DAYS = 7;
+const NEW_ACCOUNT_MS = NEW_ACCOUNT_DAYS * 24 * 60 * 60 * 1000;
+
 export function registerGuildMemberAddEvent(client: Client): void {
   client.on(Events.GuildMemberAdd, async (member: GuildMember) => {
     const guildId = member.guild.id;
@@ -64,33 +67,40 @@ export function registerGuildMemberAddEvent(client: Client): void {
     if (config.welcome_channel_id && config.welcome_message) {
       const channel = member.guild.channels.cache.get(config.welcome_channel_id) as TextChannel | undefined;
       if (channel) {
-        const message = config.welcome_message
+        const msg = config.welcome_message
           .replace("{user}", member.toString())
           .replace("{server}", member.guild.name)
           .replace("{count}", String(member.guild.memberCount));
-        await channel.send(message).catch((err: unknown) => {
+        await channel.send(msg).catch((err: unknown) => {
           botLogger.warn({ err }, "Failed to send welcome message");
         });
       }
     }
 
-    // ── Member join log ───────────────────────────────────────────────────────
+    // ── Member join log + anti-alt detection ──────────────────────────────────
     if (config.log_members_channel_id) {
       const logChannel = member.guild.channels.cache.get(config.log_members_channel_id) as TextChannel | undefined;
       if (logChannel) {
         const accountAgeMs = Date.now() - member.user.createdTimestamp;
-        const newAccount = accountAgeMs < 7 * 24 * 60 * 60 * 1000;
+        const isNewAccount = accountAgeMs < NEW_ACCOUNT_MS;
+        const ageDays = Math.floor(accountAgeMs / 86_400_000);
+
         const embed = new EmbedBuilder()
-          .setColor(0x00cc66)
-          .setTitle("Member Joined")
+          .setColor(isNewAccount ? 0xff8800 : 0x00cc66)
+          .setTitle(isNewAccount ? "⚠️ New Account Joined" : "Member Joined")
           .setThumbnail(member.user.displayAvatarURL())
           .addFields(
             { name: "User", value: `${member.user.tag} (${member.user.id})`, inline: true },
-            { name: "Account Created", value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
+            { name: "Account Age", value: `${ageDays} day(s)`, inline: true },
+            { name: "Created", value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
             { name: "Members Now", value: `${member.guild.memberCount}`, inline: true },
             ...(inviteConfig.enabled && inviterInfo.id ? [{ name: "Invited By", value: `<@${inviterInfo.id}>`, inline: true }] : []),
           );
-        if (newAccount) embed.addFields({ name: "⚠️ New Account", value: "Less than 7 days old", inline: true });
+
+        if (isNewAccount) {
+          embed.setDescription(`⚠️ **Possible alt account** — this account is only **${ageDays} day(s)** old.`);
+        }
+
         embed.setTimestamp();
         await logChannel.send({ embeds: [embed] }).catch(() => {});
       }

@@ -1,8 +1,17 @@
 import { Client, Events, GuildMember, PartialGuildMember, TextChannel, EmbedBuilder } from "discord.js";
 import { getConfig } from "../db/guildConfig";
+import { saveRoles } from "../db/rolePersistence";
 
 export function registerGuildMemberRemoveEvent(client: Client): void {
   client.on(Events.GuildMemberRemove, async (member: GuildMember | PartialGuildMember) => {
+    // Save roles for persistence on rejoin (exclude managed/everyone roles)
+    if (!member.partial) {
+      const roleIds = member.roles.cache
+        .filter(r => !r.managed && r.id !== member.guild.id)
+        .map(r => r.id);
+      if (roleIds.length > 0) saveRoles(member.guild.id, member.user.id, roleIds);
+    }
+
     const config = getConfig(member.guild.id);
     if (!config.log_members_channel_id) return;
 

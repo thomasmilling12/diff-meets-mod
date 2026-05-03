@@ -51,7 +51,12 @@ const command: Command = {
     await sendModLog(interaction.client, guildId, "WARN", target, interaction.user.tag, reason);
 
     try {
-      await target.send(`You have been **warned** in **${interaction.guild?.name}**.\nReason: ${reason}\nTotal warnings: ${warnCount}`);
+      await target.send({ embeds: [new EmbedBuilder().setColor(0xffdd00).setTitle(`⚠️ Warning in ${interaction.guild?.name}`)
+        .addFields(
+          { name: "Reason", value: reason },
+          { name: "Moderator", value: interaction.user.tag, inline: true },
+          { name: "Total Warnings", value: `${warnCount}`, inline: true },
+        ).setFooter({ text: "Continued violations may result in further action." }).setTimestamp()] });
     } catch {}
 
     if (interaction.guild) {

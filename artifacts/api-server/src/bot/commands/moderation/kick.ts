@@ -23,7 +23,12 @@ const command: Command = {
     }
 
     try {
-      try { await target.send(`You have been **kicked** from **${interaction.guild?.name}**.\nReason: ${reason}`); } catch {}
+      try {
+        const { EmbedBuilder } = await import("discord.js");
+        await target.send({ embeds: [new EmbedBuilder().setColor(0xff8800).setTitle(`👢 Kicked from ${interaction.guild?.name}`)
+          .addFields({ name: "Reason", value: reason }, { name: "Moderator", value: interaction.user.tag, inline: true })
+          .setFooter({ text: "You are welcome to rejoin. Please follow the rules next time." }).setTimestamp()] });
+      } catch {}
       await member.kick(`${reason} | Kicked by ${interaction.user.tag}`);
 
       const caseNum = createCase({

@@ -19,6 +19,7 @@ import { startStatsUpdater } from "./utils/statsUpdater";
 import { startGiveawayChecker } from "./utils/giveawayManager";
 import { startReminderChecker } from "./utils/reminderChecker";
 import { startScheduledAnnouncementChecker } from "./utils/scheduledAnnouncementChecker";
+import { startTempRoleChecker } from "./utils/tempRoleChecker";
 
 import banCommand from "./commands/moderation/ban";
 import unbanCommand from "./commands/moderation/unban";
@@ -77,6 +78,11 @@ import remindCommand from "./commands/utility/remind";
 import afkCommand from "./commands/utility/afk";
 import reportCommand from "./commands/utility/report";
 import scheduleCommand from "./commands/utility/schedule";
+import snipeCommand from "./commands/utility/snipe";
+import embedCommand from "./commands/utility/embed";
+import userhistoryCommand from "./commands/utility/userhistory";
+import temproleCommand from "./commands/moderation/temprole";
+import raidmodeCommand from "./commands/config/raidmode";
 
 import quickWarnCommand from "./commands/contextmenus/warnUser";
 import quickBanCommand from "./commands/contextmenus/banUser";
@@ -98,6 +104,9 @@ const allCommands = [
 
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
   giveawayCommand, funCommand, backupCommand, remindCommand, afkCommand, reportCommand, scheduleCommand,
+  snipeCommand, embedCommand, userhistoryCommand,
+
+  temproleCommand, raidmodeCommand,
 
   quickWarnCommand, quickBanCommand, deleteMessageCommand,
 ];
@@ -137,6 +146,7 @@ export async function startBot(): Promise<void> {
     startGiveawayChecker(client);
     startReminderChecker(client);
     startScheduledAnnouncementChecker(client);
+    startTempRoleChecker(client);
   });
 
   try {

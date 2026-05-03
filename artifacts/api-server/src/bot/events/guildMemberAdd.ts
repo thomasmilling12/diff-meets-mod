@@ -2,6 +2,7 @@ import { Client, Events, GuildMember, TextChannel, EmbedBuilder } from "discord.
 import { getConfig } from "../db/guildConfig";
 import { checkRaid } from "../utils/raidProtectionHandler";
 import { getInviteTracking, upsertInviteUse, getInviteUse, setMemberInvite } from "../db/inviteTracking";
+import { getSavedRoles, clearSavedRoles } from "../db/rolePersistence";
 import { botLogger } from "../logger";
 
 const NEW_ACCOUNT_DAYS = 7;
@@ -49,6 +50,18 @@ export function registerGuildMemberAddEvent(client: Client): void {
               { name: "Invite Code", value: inviterInfo.code ? `\`${inviterInfo.code}\`` : "Unknown", inline: true },
             ).setTimestamp();
           await logChannel.send({ embeds: [embed] }).catch(() => {});
+        }
+      }
+    }
+
+    // ── Role persistence — restore saved roles on rejoin ─────────────────────
+    const savedRoles = getSavedRoles(guildId, member.id);
+    if (savedRoles.length > 0) {
+      clearSavedRoles(guildId, member.id);
+      for (const roleId of savedRoles) {
+        const role = member.guild.roles.cache.get(roleId);
+        if (role && !role.managed) {
+          await member.roles.add(role, "Role persistence — restored on rejoin").catch(() => {});
         }
       }
     }

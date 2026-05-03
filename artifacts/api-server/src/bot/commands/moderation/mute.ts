@@ -36,7 +36,12 @@ const command: Command = {
         moderatorId: interaction.user.id, moderatorTag: interaction.user.tag, reason,
       });
 
-      try { await target.send(`You have been **muted** in **${interaction.guild?.name}** for **${durationText}**.\nReason: ${reason}`); } catch {}
+      try {
+        const { EmbedBuilder } = await import("discord.js");
+        await target.send({ embeds: [new EmbedBuilder().setColor(0xffa500).setTitle(`🔇 Muted in ${interaction.guild?.name}`)
+          .addFields({ name: "Reason", value: reason }, { name: "Duration", value: durationText, inline: true }, { name: "Moderator", value: interaction.user.tag, inline: true })
+          .setTimestamp()] });
+      } catch {}
 
       await interaction.reply({ content: `Muted **${target.tag}** for **${durationText}**. Case #${caseNum}\nReason: ${reason}` });
       await sendModLog(interaction.client, guildId, "MUTE", target, interaction.user.tag, reason, { Duration: durationText });

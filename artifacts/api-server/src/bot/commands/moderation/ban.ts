@@ -25,7 +25,12 @@ const command: Command = {
     }
 
     try {
-      try { await target.send(`You have been **banned** from **${interaction.guild?.name}**.\nReason: ${reason}`); } catch {}
+      try {
+        const { EmbedBuilder } = await import("discord.js");
+        await target.send({ embeds: [new EmbedBuilder().setColor(0xff4444).setTitle(`🔨 Banned from ${interaction.guild?.name}`)
+          .addFields({ name: "Reason", value: reason }, { name: "Moderator", value: interaction.user.tag, inline: true })
+          .setFooter({ text: "If you believe this is a mistake, contact a server admin." }).setTimestamp()] });
+      } catch {}
       await interaction.guild?.members.ban(target, {
         reason: `${reason} | Banned by ${interaction.user.tag}`,
         deleteMessageSeconds: deleteDays * 86400,

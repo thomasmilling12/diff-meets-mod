@@ -195,4 +195,17 @@ db.exec(`CREATE TABLE IF NOT EXISTS bot_presence (
   activity_text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'online'
 )`);
 
+db.exec(`CREATE TABLE IF NOT EXISTS role_persistence (
+  guild_id TEXT NOT NULL, user_id TEXT NOT NULL,
+  role_ids TEXT NOT NULL, saved_at INTEGER NOT NULL DEFAULT (unixepoch()),
+  PRIMARY KEY(guild_id, user_id)
+)`);
+
+db.exec(`CREATE TABLE IF NOT EXISTS temp_roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, guild_id TEXT NOT NULL,
+  user_id TEXT NOT NULL, role_id TEXT NOT NULL,
+  expires_at INTEGER NOT NULL, removed INTEGER DEFAULT 0,
+  assigned_by_tag TEXT NOT NULL
+)`);
+
 botLogger.info({ dbPath }, "Database initialized");

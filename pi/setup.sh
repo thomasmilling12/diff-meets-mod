@@ -67,6 +67,7 @@ sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 Description=DIFF Meets Mod Discord Bot
 After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -74,7 +75,8 @@ User=${CURRENT_USER}
 WorkingDirectory=${REPO_DIR}/artifacts/api-server
 ExecStart=${NODE_BIN} --enable-source-maps ${REPO_DIR}/artifacts/api-server/dist/index.mjs
 Restart=always
-RestartSec=10
+RestartSec=15
+StartLimitBurst=0
 Environment=NODE_ENV=production
 EnvironmentFile=${REPO_DIR}/pi/.env
 StandardOutput=journal

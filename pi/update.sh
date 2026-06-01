@@ -47,6 +47,17 @@ echo "[1/5] Pulling latest changes from git..."
 # SQLite WAL/SHM files are runtime-only — reset them so git pull never conflicts
 git checkout -- "artifacts/api-server/data/bot.db-shm" 2>/dev/null || true
 git checkout -- "artifacts/api-server/data/bot.db-wal"  2>/dev/null || true
+
+# Recover from a detached-HEAD state (can happen after interrupted pulls/power cuts)
+CURRENT_BRANCH="$(git symbolic-ref --short -q HEAD || echo '')"
+if [ -z "$CURRENT_BRANCH" ]; then
+  DEFAULT_BRANCH="$(git remote show origin | sed -n 's/.*HEAD branch: //p')"
+  DEFAULT_BRANCH="${DEFAULT_BRANCH:-main}"
+  echo "  Not on a branch — checking out '${DEFAULT_BRANCH}'..."
+  git checkout -- "artifacts/api-server/data/" 2>/dev/null || true
+  git checkout "$DEFAULT_BRANCH"
+fi
+
 git pull
 
 echo "[2/5] Updating dependencies..."

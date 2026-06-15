@@ -178,9 +178,28 @@ export async function startBot(): Promise<void> {
     startTempLockChecker(client);
   });
 
-  try {
-    await client.login(token);
-  } catch (err) {
-    botLogger.error({ err }, "Failed to login to Discord");
+  await loginWithRetry(token);
+}
+
+async function loginWithRetry(token: string): Promise<void> {
+  const initialDelayMs = 5_000;
+  const maxDelayMs = 60_000;
+  let attempt = 0;
+  let delayMs = initialDelayMs;
+
+  for (;;) {
+    attempt += 1;
+    try {
+      await client.login(token);
+      botLogger.info({ attempt }, "Logged in to Discord");
+      return;
+    } catch (err) {
+      botLogger.error(
+        { err, attempt, retryInMs: delayMs },
+        "Failed to login to Discord — retrying",
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      delayMs = Math.min(delayMs * 2, maxDelayMs);
+    }
   }
 }

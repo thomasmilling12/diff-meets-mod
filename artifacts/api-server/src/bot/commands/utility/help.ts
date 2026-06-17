@@ -35,6 +35,7 @@ const command: Command = {
           "`/slowmode` — Set channel slowmode",
           "`/note` — Add private mod notes",
           "`/case view/list/edit` — View and edit mod cases (paginated)",
+          "`/incident log/history/recent/offenders/remove` — Meet incident reports & repeat offenders",
         ].join("\n"),
       },
       tickets: {
@@ -92,6 +93,7 @@ const command: Command = {
           "`/poll` — Create a reaction poll (up to 5 options, optional duration)",
           "`/announce` — Send a formatted announcement embed",
           "`/theme` — Random car meet theme suggestions (1-5 at a time)",
+          "`/location` — Random GTA meet location (city/off-road/industrial/beach/dealership)",
           "`/trivia` — GTA trivia: cars, locations, updates, racing",
           "`/ping` — Check bot latency",
           "`/userinfo` — View user details",

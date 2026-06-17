@@ -93,6 +93,8 @@ import tagCommand from "./commands/utility/tag";
 import suggestCommand from "./commands/utility/suggest";
 import themeCommand from "./commands/utility/theme";
 import triviaCommand from "./commands/utility/trivia";
+import locationCommand from "./commands/utility/location";
+import incidentCommand from "./commands/moderation/incident";
 import membercountCommand from "./commands/utility/membercount";
 import lookupCommand from "./commands/utility/lookup";
 import serverCommand from "./commands/utility/server";
@@ -134,6 +136,7 @@ const allCommands = [
   giveawayCommand, funCommand, backupCommand, remindCommand, afkCommand, reportCommand, scheduleCommand,
   snipeCommand, embedCommand, userhistoryCommand, avatarCommand, roleinfoCommand, botinfoCommand,
   highlightCommand, channelinfoCommand, tagCommand, suggestCommand, themeCommand, triviaCommand,
+  locationCommand, incidentCommand,
   membercountCommand, lookupCommand, serverCommand,
 
   temproleCommand, raidmodeCommand,

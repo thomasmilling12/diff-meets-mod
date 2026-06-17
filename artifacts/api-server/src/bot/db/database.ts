@@ -270,4 +270,12 @@ db.exec(`CREATE TABLE IF NOT EXISTS temp_roles (
   assigned_by_tag TEXT NOT NULL
 )`);
 
+db.exec(`CREATE TABLE IF NOT EXISTS incidents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, guild_id TEXT NOT NULL,
+  user_id TEXT NOT NULL, user_tag TEXT NOT NULL,
+  type TEXT NOT NULL, details TEXT NOT NULL,
+  staff_id TEXT NOT NULL, staff_tag TEXT NOT NULL,
+  created_at INTEGER NOT NULL DEFAULT (unixepoch())
+)`);
+
 botLogger.info({ dbPath }, "Database initialized");

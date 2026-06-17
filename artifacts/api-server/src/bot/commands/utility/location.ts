@@ -1,5 +1,25 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, SlashCommandStringOption } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, SlashCommandStringOption, AttachmentBuilder } from "discord.js";
+import fs from "node:fs";
+import path from "node:path";
 import type { Command } from "../../client";
+
+const LOCATION_IMAGE_DIR = path.resolve(process.cwd(), "assets/locations");
+const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp"];
+
+export function slugifyLocation(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function findLocationImage(name: string): { filePath: string; fileName: string } | null {
+  const slug = slugifyLocation(name);
+  for (const ext of IMAGE_EXTS) {
+    const filePath = path.join(LOCATION_IMAGE_DIR, slug + ext);
+    try {
+      if (fs.statSync(filePath).isFile()) return { filePath, fileName: slug + ext };
+    } catch { /* not present / not a regular file */ }
+  }
+  return null;
+}
 
 type Category = "city" | "offroad" | "industrial" | "beach" | "dealership";
 
@@ -126,6 +146,19 @@ const command: Command = {
       .setFooter({ text: "Meet Location Generator" })
       .setTimestamp();
 
+    const image = findLocationImage(loc.name);
+    if (image) {
+      try {
+        embed.setImage(`attachment://${image.fileName}`);
+        await interaction.reply({
+          embeds: [embed],
+          files: [new AttachmentBuilder(image.filePath, { name: image.fileName })],
+        });
+        return;
+      } catch {
+        embed.setImage(null);
+      }
+    }
     await interaction.reply({ embeds: [embed] });
   },
 };

@@ -91,6 +91,8 @@ import highlightCommand from "./commands/utility/highlight";
 import channelinfoCommand from "./commands/utility/channelinfo";
 import tagCommand from "./commands/utility/tag";
 import suggestCommand from "./commands/utility/suggest";
+import themeCommand from "./commands/utility/theme";
+import triviaCommand from "./commands/utility/trivia";
 import membercountCommand from "./commands/utility/membercount";
 import lookupCommand from "./commands/utility/lookup";
 import serverCommand from "./commands/utility/server";
@@ -131,7 +133,7 @@ const allCommands = [
   pingCommand, userinfoCommand, serverinfoCommand, helpCommand, announceCommand, pollCommand,
   giveawayCommand, funCommand, backupCommand, remindCommand, afkCommand, reportCommand, scheduleCommand,
   snipeCommand, embedCommand, userhistoryCommand, avatarCommand, roleinfoCommand, botinfoCommand,
-  highlightCommand, channelinfoCommand, tagCommand, suggestCommand,
+  highlightCommand, channelinfoCommand, tagCommand, suggestCommand, themeCommand, triviaCommand,
   membercountCommand, lookupCommand, serverCommand,
 
   temproleCommand, raidmodeCommand,

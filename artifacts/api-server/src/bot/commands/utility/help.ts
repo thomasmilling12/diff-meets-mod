@@ -91,6 +91,8 @@ const command: Command = {
         value: [
           "`/poll` — Create a reaction poll (up to 5 options, optional duration)",
           "`/announce` — Send a formatted announcement embed",
+          "`/theme` — Random car meet theme suggestions (1-5 at a time)",
+          "`/trivia` — GTA trivia: cars, locations, updates, racing",
           "`/ping` — Check bot latency",
           "`/userinfo` — View user details",
           "`/serverinfo` — View server details",
